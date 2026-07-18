@@ -39,6 +39,29 @@ class Welcome(commands.Cog):
         except discord.HTTPException:
             self.bot.logger.warning("Impossible d'envoyer le message de bienvenue dans %s", channel)
 
+    @commands.Cog.listener()
+    async def on_member_remove(self, member: discord.Member):
+        if not config.WELCOME_CHANNEL_ID:
+            return
+
+        channel = member.guild.get_channel(config.WELCOME_CHANNEL_ID)
+        if not channel:
+            return
+
+        embed = discord.Embed(
+            title="Départ",
+            description=f"**{member.name}** a quitté le serveur Discord **Chez Malika**",
+            color=discord.Color.from_rgb(237, 66, 69),
+        )
+        embed.set_thumbnail(url=member.display_avatar.url)
+        embed.set_footer(text=f"Membres restants : {member.guild.member_count}")
+        embed.timestamp = discord.utils.utcnow()
+
+        try:
+            await channel.send(content=f"👋 **{member.name}** nous a quitté...", embed=embed)
+        except discord.HTTPException:
+            self.bot.logger.warning("Impossible d'envoyer le message de départ dans %s", channel)
+
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Welcome(bot))
